@@ -1,0 +1,11 @@
+public class IncorrectInfoException extends Exception{
+    private String error = "";
+    public IncorrectInfoException(String errorMessage){
+        super(errorMessage);
+        error = errorMessage;
+    }
+    @Override
+    public String toString(){
+        return error;
+    }
+}
