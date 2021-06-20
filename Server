@@ -1,0 +1,42 @@
+import java.io.*;
+import java.net.*;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.stage.Stage;
+
+public class Server extends Application {
+    
+    @Override
+    public void start(Stage primaryStage) {
+        
+        TextArea serverLog = new TextArea();
+        
+        Scene scene = new Scene(new ScrollPane(serverLog), 450, 200);
+        primaryStage.setTitle("Server");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        
+        new Thread(() -> {
+            try {
+                ServerSocket server = new ServerSocket(6666);
+                Socket socket = server.accept();
+                DataInputStream fromClient = new DataInputStream(socket.getInputStream());
+                DataOutputStream toClient = new DataOutputStream(socket.getOutputStream());
+                
+                    String testConnection = fromClient.readUTF();
+                    serverLog.setText(testConnection);
+                    toClient.writeUTF("Connection Success");
+                
+                
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }).start();
+    }
+    
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
