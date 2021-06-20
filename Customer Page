@@ -1,0 +1,239 @@
+
+import java.sql.*;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+
+public class CustomerPage extends Application implements Reservation {
+
+    //Variables
+    private int rType = 0;
+    private int bType = 0;
+    private int tNights = 0;
+    private int tPrice = 0;
+    private String nameRes = "";
+    private int idRes = 0;
+    private int ageRes = 0;
+    private String genderRes = "";
+    private String roomRes = "";
+    private String boardRes = "";
+
+    //Methods
+    @Override
+    public int costForRoom(int room, int board, int totalNights) {
+        return (room + board) * totalNights;
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws IncorrectInfoException {
+
+        Label errorMessageLabel = new Label();
+        errorMessageLabel.setFont(Font.font("Arial", 14));
+        errorMessageLabel.setLayoutX(370);
+        errorMessageLabel.setLayoutY(220);
+        errorMessageLabel.setTextFill(new Color(1, 0, 0, 1));
+
+        Label nameLabel = new Label("Name:");
+        nameLabel.setFont(Font.font("Arial", 14));
+        nameLabel.setLayoutX(20);
+        nameLabel.setLayoutY(20);
+
+        TextField nameTF = new TextField();
+        nameTF.setLayoutX(150);
+        nameTF.setLayoutY(15);
+
+        Label idLabel = new Label("ID:");
+        idLabel.setFont(Font.font("Arial", 14));
+        idLabel.setLayoutX(20);
+        idLabel.setLayoutY(60);
+
+        TextField idTF = new TextField();
+        idTF.setLayoutX(150);
+        idTF.setLayoutY(55);
+
+        Label ageLabel = new Label("Age:");
+        ageLabel.setFont(Font.font("Arial", 14));
+        ageLabel.setLayoutX(20);
+        ageLabel.setLayoutY(100);
+
+        TextField ageTF = new TextField();
+        ageTF.setLayoutX(150);
+        ageTF.setLayoutY(95);
+
+        Label genderLabel = new Label("Gender:");
+        genderLabel.setFont(Font.font("Arial", 14));
+        genderLabel.setLayoutX(20);
+        genderLabel.setLayoutY(140);
+
+        TextField genderTF = new TextField();
+        genderTF.setLayoutX(150);
+        genderTF.setLayoutY(135);
+
+        Label nightNumLabel = new Label("Number of nights:");
+        nightNumLabel.setFont(Font.font("Arial", 14));
+        nightNumLabel.setLayoutX(20);
+        nightNumLabel.setLayoutY(180);
+
+        TextField nightNumTF = new TextField();
+        nightNumTF.setLayoutX(150);
+        nightNumTF.setLayoutY(175);
+
+        Button singleRoomButton = new Button();
+        singleRoomButton.setText("Single Room");
+        singleRoomButton.setLayoutX(20);
+        singleRoomButton.setLayoutY(220);
+        singleRoomButton.setPrefWidth(115);
+        singleRoomButton.setOnAction(e -> {
+            rType = singleRoom;
+        });
+
+        Button doubleRoomButton = new Button();
+        doubleRoomButton.setText("Double Room");
+        doubleRoomButton.setLayoutX(150);
+        doubleRoomButton.setLayoutY(220);
+        doubleRoomButton.setPrefWidth(115);
+        doubleRoomButton.setOnAction(e -> {
+            rType = doubleRoom;
+        });
+
+        Button halfBoardButton = new Button();
+        halfBoardButton.setText("Half Board");
+        halfBoardButton.setLayoutX(20);
+        halfBoardButton.setLayoutY(260);
+        halfBoardButton.setPrefWidth(115);
+        halfBoardButton.setOnAction(e -> {
+            bType = halfBoard;
+        });
+
+        Button fullBoardButton = new Button();
+        fullBoardButton.setText("Full Board");
+        fullBoardButton.setLayoutX(150);
+        fullBoardButton.setLayoutY(260);
+        fullBoardButton.setPrefWidth(115);
+        fullBoardButton.setOnAction(e -> {
+            bType = fullBoard;
+        });
+        
+        Button backButton = new Button();
+        backButton.setText("Back");
+        backButton.setLayoutX(370);
+        backButton.setLayoutY(300);
+        backButton.setPrefWidth(50);
+        MainClass mc = new MainClass();
+        backButton.setOnAction(e -> {mc.start(primaryStage);});
+
+        Button reserveButton = new Button();
+        reserveButton.setText("Reserve");
+        reserveButton.setLayoutX(65);
+        reserveButton.setLayoutY(300);
+        reserveButton.setPrefWidth(115);
+        reserveButton.setOnAction(e -> {
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection connection = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "hotel", "hotel");
+                Statement st = connection.createStatement();
+
+                if ("".equals(nameTF.getText()) || "".equals(idTF.getText())
+                        || "".equals(ageTF.getText()) || "".equals(genderTF.getText()) || "".equals(nightNumTF.getText())) {
+                    throw new IncorrectInfoException("Missing fields");
+                }
+                errorMessageLabel.setText("");
+                
+                nameRes = nameTF.getText();
+                idRes = Integer.parseInt(idTF.getText());
+                ageRes = Integer.parseInt(ageTF.getText());
+                genderRes = genderTF.getText().toUpperCase();
+                
+                if(!genderRes.equals("MALE") && !genderRes.equals("FEMALE")){
+                    throw new IncorrectInfoException("Invalid gender");
+                }
+                switch (rType) {
+                    case singleRoom:
+                        roomRes = "Single";
+                        break;
+                    case doubleRoom:
+                        roomRes = "Double";
+                        break;
+                    default:
+                        throw new IncorrectInfoException("Incorrect Room");
+                }
+                switch (bType) {
+                    case fullBoard:
+                        boardRes = "Full";
+                        break;
+                    case halfBoard:
+                        boardRes = "Half";
+                        break;
+                    default:
+                        throw new IncorrectInfoException("Incorrect Board");
+                }
+                st.executeQuery("insert into Customers"
+                        + "(c_id, c_name, c_age, c_gender, c_room, c_roomprice, c_board)"
+                        + "values(" + idRes + ", '" + nameRes + "', " + ageRes
+                        + ", '" + genderRes + "', '" + roomRes + "', " + tPrice + ", '" + boardRes + "')");
+                SuccessPage sp = new SuccessPage();
+                sp.start(primaryStage);
+
+            } catch (IncorrectInfoException ex) {
+                errorMessageLabel.setText(ex.toString());
+            } catch (SQLIntegrityConstraintViolationException ex) {
+                errorMessageLabel.setText("ID already exists");
+            } catch(NumberFormatException ex) {
+                errorMessageLabel.setText("ID & Age must\nbe integers");
+            } catch(Exception ex) {
+                System.out.println(ex);
+            }
+        });
+
+        Label expectedPriceLabel = new Label("Expected Price:");
+        expectedPriceLabel.setFont(Font.font("Arial", 14));
+        expectedPriceLabel.setLayoutX(370);
+        expectedPriceLabel.setLayoutY(60);
+
+        Label priceLabel = new Label();
+        priceLabel.setFont(Font.font("Arial", 14));
+        priceLabel.setLayoutX(405);
+        priceLabel.setLayoutY(100);
+
+        Button countButton = new Button();
+        countButton.setText("Count Price");
+        countButton.setLayoutX(370);
+        countButton.setLayoutY(140);
+        countButton.setPrefWidth(115);
+        countButton.setOnAction(e -> {
+            try {
+                if (Integer.parseInt(nightNumTF.getText()) <= 0 || rType <= 0 || bType <= 0) {
+                    priceLabel.setTextFill(new Color(1, 0, 0, 1));
+                    priceLabel.setText("Error");
+                } else {
+                    tNights = Integer.parseInt(nightNumTF.getText());
+                    tPrice = costForRoom(rType, bType, tNights);
+                    priceLabel.setTextFill(new Color(0, 1, 0, 1));
+                    priceLabel.setText(Integer.toString(tPrice));
+                }
+            } catch (Exception ex) {
+                priceLabel.setTextFill(new Color(1, 0, 0, 1));
+                priceLabel.setText("Error");
+            }
+        });
+
+        Pane pane = new Pane();
+        pane.getChildren().addAll(
+                nameLabel, nameTF, idLabel, idTF, ageLabel,
+                ageTF, genderLabel, genderTF, nightNumLabel, nightNumTF,
+                singleRoomButton, doubleRoomButton, halfBoardButton,
+                fullBoardButton, reserveButton, expectedPriceLabel,
+                priceLabel, countButton, errorMessageLabel, backButton);
+
+        Scene scene = new Scene(pane, 500, 360);
+        primaryStage.setTitle("Customer Reservation");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+}
