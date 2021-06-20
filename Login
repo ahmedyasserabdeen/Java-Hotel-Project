@@ -1,0 +1,102 @@
+import java.sql.*;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.text.Font;
+import javafx.stage.Stage;
+import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+
+public class LoginPage extends Application {
+
+    private String username = "";
+    private String password = "";
+    private String dbUsername = "";
+    private String dbPassword = "";
+
+    @Override
+    public void start(Stage primaryStage) {
+
+        Label errorLoginLabel = new Label("");
+        errorLoginLabel.setFont(Font.font("Arial", 14));
+        errorLoginLabel.setTextFill(new Color(1, 0, 0, 1));
+        errorLoginLabel.setLayoutX(190);
+        errorLoginLabel.setLayoutY(105);
+        
+        Label usernameLabel = new Label("Username:");
+        usernameLabel.setFont(Font.font("Arial", 14));
+        usernameLabel.setLayoutX(20);
+        usernameLabel.setLayoutY(20);
+
+        TextField usernameTF = new TextField();
+        usernameTF.setLayoutX(140);
+        usernameTF.setLayoutY(15);
+
+        Label passwordLabel = new Label("Password:");
+        passwordLabel.setFont(Font.font("Arial", 14));
+        passwordLabel.setLayoutX(20);
+        passwordLabel.setLayoutY(60);
+
+        PasswordField passwordTF = new PasswordField();
+        passwordTF.setLayoutX(140);
+        passwordTF.setLayoutY(55);
+        
+        Button backButton = new Button();
+        backButton.setText("Back");
+        backButton.setLayoutX(10);
+        backButton.setLayoutY(100);
+        backButton.setPrefWidth(50);
+        MainClass mc = new MainClass();
+        backButton.setOnAction(e -> {mc.start(primaryStage);});
+
+        Button loginButton = new Button();
+        loginButton.setText("Login");
+        loginButton.setLayoutX(120);
+        loginButton.setLayoutY(100);
+        loginButton.setPrefWidth(60);
+        loginButton.setOnAction(e -> {
+            try {
+                Class.forName("oracle.jdbc.driver.OracleDriver");
+                Connection connection = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "hotel", "hotel");
+                Statement st = connection.createStatement();
+                if ("".equals(usernameTF.getText()) || "".equals(passwordTF.getText())) {
+                    throw new IncorrectInfoException("Missing fields.");
+                }
+                username = usernameTF.getText();
+                password = passwordTF.getText();
+
+                ResultSet rs = st.executeQuery("select * from Employees where username = '" 
+                        + username + "' and password = '" + password + "'");
+                if(rs.next()) {
+                    dbUsername = rs.getString(1);
+                    dbPassword = rs.getString(2);
+                }
+                if(username.equals(dbUsername) && password.equals(dbPassword)) {
+                    ShowCustomers sc = new ShowCustomers();
+                    sc.start(primaryStage);
+                }
+                else {
+                    throw new IncorrectInfoException("Incorrect username or password.");
+                }
+            } catch (IncorrectInfoException ee) {
+                errorLoginLabel.setText(ee.toString());
+            } catch (Exception ex) {
+                System.out.println(ex);
+            }
+
+        });
+
+        Pane pane = new Pane();
+        pane.getChildren().addAll(usernameLabel, usernameTF, passwordLabel,
+                passwordTF, loginButton, errorLoginLabel, backButton);
+
+        Scene scene = new Scene(pane, 400, 150);
+        primaryStage.setTitle("Login");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.show();
+    }
+}
