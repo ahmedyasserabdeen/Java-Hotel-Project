@@ -1,0 +1,10 @@
+public interface Reservation {
+    //Constants
+    int doubleRoom = 160;
+    int singleRoom = 100;
+    int fullBoard = 50;
+    int halfBoard = 20;
+    
+    //Methods
+    int costForRoom(int room, int board, int totalNights);
+}
